@@ -158,7 +158,6 @@ export function useSupabaseData(user: User | null) {
 
     try {
       if (isCurrentlyLiked) {
-        // Remove like
         const { error } = await supabase
           .from('liked_songs')
           .delete()
@@ -175,39 +174,29 @@ export function useSupabaseData(user: User | null) {
 
         if (updateError) throw updateError
 
-        // Update local liked songs set
         setLikedSongs(prev => {
           const newSet = new Set(prev)
           newSet.delete(songFileId)
           return newSet
         })
 
-        // Update songs state immediately
+        // Update songs state
         setSongs(prevSongs => 
           prevSongs.map(song => 
-            song.id === songId ? { ...song, isLiked: false, likes: Math.max(0, song.likes - 1) } : song
+            song.id === songId ? { ...song, isLiked: false, likes: song.likes - 1 } : song
           )
         )
 
-        // Update playlists state immediately
+        // Update playlists state
         setPlaylists(prevPlaylists =>
           prevPlaylists.map(playlist => ({
             ...playlist,
             songs: playlist.songs.map(song =>
-              song.id === songId ? { ...song, isLiked: false, likes: Math.max(0, song.likes - 1) } : song
+              song.id === songId ? { ...song, isLiked: false, likes: song.likes - 1 } : song
             )
           }))
         )
-
-        // Update last played song if it's the same song
-        setLastPlayedSong(prev => 
-          prev && prev.id === songId 
-            ? { ...prev, isLiked: false, likes: Math.max(0, prev.likes - 1) }
-            : prev
-        )
-
       } else {
-        // Add like
         const { error } = await supabase
           .from('liked_songs')
           .insert({
@@ -225,17 +214,16 @@ export function useSupabaseData(user: User | null) {
 
         if (updateError) throw updateError
 
-        // Update local liked songs set
         setLikedSongs(prev => new Set(prev).add(songFileId))
 
-        // Update songs state immediately
+        // Update songs state
         setSongs(prevSongs => 
           prevSongs.map(song => 
             song.id === songId ? { ...song, isLiked: true, likes: song.likes + 1 } : song
           )
         )
 
-        // Update playlists state immediately
+        // Update playlists state
         setPlaylists(prevPlaylists =>
           prevPlaylists.map(playlist => ({
             ...playlist,
@@ -243,13 +231,6 @@ export function useSupabaseData(user: User | null) {
               song.id === songId ? { ...song, isLiked: true, likes: song.likes + 1 } : song
             )
           }))
-        )
-
-        // Update last played song if it's the same song
-        setLastPlayedSong(prev => 
-          prev && prev.id === songId 
-            ? { ...prev, isLiked: true, likes: prev.likes + 1 }
-            : prev
         )
       }
     } catch (error) {
