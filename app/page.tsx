@@ -65,6 +65,16 @@ function MusicPlayerContent() {
     }
   }, [lastPlayedSong, currentSong]);
 
+  // Update current song when songs data changes (for like status sync)
+  useEffect(() => {
+    if (currentSong) {
+      const updatedSong = songs.find(song => song.id === currentSong.id);
+      if (updatedSong && (updatedSong.isLiked !== currentSong.isLiked || updatedSong.likes !== currentSong.likes)) {
+        setCurrentSong(updatedSong);
+      }
+    }
+  }, [songs, currentSong]);
+
   const toggleTheme = () => {
     setIsDarkMode(!isDarkMode);
   };
@@ -94,13 +104,9 @@ function MusicPlayerContent() {
     setIsPlayerMaximized(false);
   };
 
-  const handleToggleLike = (songId: string) => {
-    toggleLike(songId);
-    
-    // Update current song if it's the one being liked/unliked
-    if (currentSong && currentSong.id === songId) {
-      setCurrentSong(prev => prev ? { ...prev, isLiked: !prev.isLiked } : null);
-    }
+  const handleToggleLike = async (songId: string) => {
+    await toggleLike(songId);
+    // The useEffect above will automatically update currentSong when songs state changes
   };
 
   const handlePrevious = () => {
