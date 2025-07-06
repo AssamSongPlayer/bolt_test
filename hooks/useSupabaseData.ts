@@ -121,16 +121,14 @@ export function useSupabaseData(user: User | null) {
   // Increment song views
   const incrementViews = async (songId: string) => {
     try {
-      const songFileId = parseInt(songId)
-      
-      // Update database
-      const { error } = await supabase.rpc('increment_views', {
-        song_file_id: songFileId
-      })
+      const { error } = await supabase
+        .from('songs')
+        .update({ views: supabase.sql`views + 1` })
+        .eq('file_id', parseInt(songId))
 
       if (error) throw error
 
-      // Update local state immediately for responsive UI
+      // Update local state
       setSongs(prevSongs => 
         prevSongs.map(song => 
           song.id === songId ? { ...song, views: song.views + 1 } : song
@@ -146,11 +144,6 @@ export function useSupabaseData(user: User | null) {
           )
         }))
       )
-
-      // Update last played song if it matches
-      setLastPlayedSong(prev => 
-        prev && prev.id === songId ? { ...prev, views: prev.views + 1 } : prev
-      )
     } catch (error) {
       console.error('Error incrementing views:', error)
     }
@@ -165,7 +158,6 @@ export function useSupabaseData(user: User | null) {
 
     try {
       if (isCurrentlyLiked) {
-        // Remove like
         const { error } = await supabase
           .from('liked_songs')
           .delete()
@@ -175,9 +167,10 @@ export function useSupabaseData(user: User | null) {
         if (error) throw error
 
         // Decrement likes count in songs table
-        const { error: updateError } = await supabase.rpc('decrement_likes', {
-          song_file_id: songFileId
-        })
+        const { error: updateError } = await supabase
+          .from('songs')
+          .update({ likes: supabase.sql`likes - 1` })
+          .eq('file_id', songFileId)
 
         if (updateError) throw updateError
 
@@ -187,22 +180,23 @@ export function useSupabaseData(user: User | null) {
           return newSet
         })
 
-        // Update all states
-        const updateSongState = (song: Song) => 
-          song.id === songId ? { ...song, isLiked: false, likes: Math.max(0, song.likes - 1) } : song
+        // Update songs state
+        setSongs(prevSongs => 
+          prevSongs.map(song => 
+            song.id === songId ? { ...song, isLiked: false, likes: song.likes - 1 } : song
+          )
+        )
 
-        setSongs(prevSongs => prevSongs.map(updateSongState))
+        // Update playlists state
         setPlaylists(prevPlaylists =>
           prevPlaylists.map(playlist => ({
             ...playlist,
-            songs: playlist.songs.map(updateSongState)
+            songs: playlist.songs.map(song =>
+              song.id === songId ? { ...song, isLiked: false, likes: song.likes - 1 } : song
+            )
           }))
         )
-        setLastPlayedSong(prev => 
-          prev && prev.id === songId ? { ...prev, isLiked: false, likes: Math.max(0, prev.likes - 1) } : prev
-        )
       } else {
-        // Add like
         const { error } = await supabase
           .from('liked_songs')
           .insert({
@@ -213,27 +207,30 @@ export function useSupabaseData(user: User | null) {
         if (error) throw error
 
         // Increment likes count in songs table
-        const { error: updateError } = await supabase.rpc('increment_likes', {
-          song_file_id: songFileId
-        })
+        const { error: updateError } = await supabase
+          .from('songs')
+          .update({ likes: supabase.sql`likes + 1` })
+          .eq('file_id', songFileId)
 
         if (updateError) throw updateError
 
         setLikedSongs(prev => new Set(prev).add(songFileId))
 
-        // Update all states
-        const updateSongState = (song: Song) => 
-          song.id === songId ? { ...song, isLiked: true, likes: song.likes + 1 } : song
+        // Update songs state
+        setSongs(prevSongs => 
+          prevSongs.map(song => 
+            song.id === songId ? { ...song, isLiked: true, likes: song.likes + 1 } : song
+          )
+        )
 
-        setSongs(prevSongs => prevSongs.map(updateSongState))
+        // Update playlists state
         setPlaylists(prevPlaylists =>
           prevPlaylists.map(playlist => ({
             ...playlist,
-            songs: playlist.songs.map(updateSongState)
+            songs: playlist.songs.map(song =>
+              song.id === songId ? { ...song, isLiked: true, likes: song.likes + 1 } : song
+            )
           }))
-        )
-        setLastPlayedSong(prev => 
-          prev && prev.id === songId ? { ...prev, isLiked: true, likes: prev.likes + 1 } : prev
         )
       }
     } catch (error) {
@@ -476,25 +473,8 @@ export function useSupabaseData(user: User | null) {
   }
 
   // Clear last played song
-  const clearLastPlayedSong = async () => {
-    if (!user) return
-
-    try {
-      // Clear from database
-      const { error } = await supabase
-        .from('users')
-        .update({ last_song_file_id: null })
-        .eq('id', user.id)
-
-      if (error) throw error
-
-      // Clear from state
-      setLastPlayedSong(null)
-    } catch (error) {
-      console.error('Error clearing last played song:', error)
-      // Still clear from state even if database update fails
-      setLastPlayedSong(null)
-    }
+  const clearLastPlayedSong = () => {
+    setLastPlayedSong(null)
   }
 
   useEffect(() => {

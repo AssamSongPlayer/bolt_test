@@ -38,11 +38,6 @@ const MinimizedPlayer: React.FC<MinimizedPlayerProps> = ({
     onToggleLike();
   };
 
-  const handleControlClick = (e: React.MouseEvent, action: () => void) => {
-    e.stopPropagation();
-    action();
-  };
-
   return (
     <div className={`fixed bottom-20 left-0 right-0 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-t z-40 shadow-lg`}>
       {/* Progress Bar */}
@@ -79,14 +74,20 @@ const MinimizedPlayer: React.FC<MinimizedPlayerProps> = ({
         {/* Controls */}
         <div className="flex items-center space-x-1">
           <button 
-            onClick={(e) => handleControlClick(e, onPrevious)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onPrevious();
+            }}
             className={`p-2 ${isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} rounded-full transition-colors`}
           >
             <SkipBack size={18} className={isDarkMode ? 'text-gray-300' : 'text-gray-700'} />
           </button>
           
           <button
-            onClick={(e) => handleControlClick(e, onTogglePlay)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onTogglePlay();
+            }}
             className={`p-2 ${isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} rounded-full transition-colors`}
           >
             {isPlaying ? (
@@ -97,7 +98,10 @@ const MinimizedPlayer: React.FC<MinimizedPlayerProps> = ({
           </button>
           
           <button
-            onClick={(e) => handleControlClick(e, onNext)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onNext();
+            }}
             className={`p-2 ${isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} rounded-full transition-colors`}
           >
             <SkipForward size={18} className={isDarkMode ? 'text-gray-300' : 'text-gray-700'} />
