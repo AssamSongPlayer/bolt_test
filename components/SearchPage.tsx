@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Music } from 'lucide-react';
+import { Search, Music, MoreHorizontal } from 'lucide-react';
 import { Song } from '@/types';
 import { useTheme } from '@/app/page';
 import SongCard from './SongCard';
@@ -86,6 +86,16 @@ const SearchPage: React.FC<SearchPageProps> = ({ songs, onSongPlay, formatNumber
                   />
                 ))}
               </div>
+              
+              {/* Load More Button - Only show if there are results */}
+              {filteredSongs.length > 0 && (
+                <div className="flex justify-center mt-6">
+                  <button className={`flex items-center space-x-2 px-6 py-3 ${isDarkMode ? 'bg-gray-800 hover:bg-gray-700 border-gray-700' : 'bg-white hover:bg-gray-50 border-gray-200'} border rounded-full transition-colors`}>
+                    <MoreHorizontal size={20} className={isDarkMode ? 'text-gray-400' : 'text-gray-600'} />
+                    <span className={`font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>Load More</span>
+                  </button>
+                </div>
+              )}
             </div>
           </>
         )}

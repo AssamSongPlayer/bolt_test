@@ -1,5 +1,5 @@
 import React from 'react';
-import { TrendingUp, Music } from 'lucide-react';
+import { TrendingUp, Music, MoreHorizontal } from 'lucide-react';
 import { Song } from '@/types';
 import { useTheme } from '@/app/page';
 import { useAuth } from '@/hooks/useAuth';
@@ -76,6 +76,14 @@ const HomePage: React.FC<HomePageProps> = ({ songs, onSongPlay, formatNumber, on
                 onAddToPlaylist={onAddToPlaylist}
               />
             ))}
+          </div>
+          
+          {/* Load More Button */}
+          <div className="flex justify-center mt-6">
+            <button className={`flex items-center space-x-2 px-6 py-3 ${isDarkMode ? 'bg-gray-800 hover:bg-gray-700 border-gray-700' : 'bg-white hover:bg-gray-50 border-gray-200'} border rounded-full transition-colors`}>
+              <MoreHorizontal size={20} className={isDarkMode ? 'text-gray-400' : 'text-gray-600'} />
+              <span className={`font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>Load More</span>
+            </button>
           </div>
         </div>
       </div>

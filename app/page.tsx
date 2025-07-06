@@ -43,7 +43,8 @@ function MusicPlayerContent() {
     addSongToPlaylist,
     removeSongFromPlaylist,
     recordListeningHistory,
-    stopCurrentSongTracking
+    stopCurrentSongTracking,
+    clearLastPlayedSong
   } = useSupabaseData(user);
 
   const [activeTab, setActiveTab] = useState<'home' | 'search' | 'settings'>('home');
@@ -86,6 +87,8 @@ function MusicPlayerContent() {
   const closePlayer = async () => {
     // Stop tracking current song before closing
     await stopCurrentSongTracking();
+    // Clear last played song from state
+    clearLastPlayedSong();
     setCurrentSong(null);
     setIsPlaying(false);
     setIsPlayerMaximized(false);
@@ -93,6 +96,11 @@ function MusicPlayerContent() {
 
   const handleToggleLike = (songId: string) => {
     toggleLike(songId);
+    
+    // Update current song if it's the one being liked/unliked
+    if (currentSong && currentSong.id === songId) {
+      setCurrentSong(prev => prev ? { ...prev, isLiked: !prev.isLiked } : null);
+    }
   };
 
   const handlePrevious = () => {

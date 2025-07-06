@@ -33,6 +33,11 @@ const MinimizedPlayer: React.FC<MinimizedPlayerProps> = ({
     await onClose();
   };
 
+  const handleToggleLike = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onToggleLike();
+  };
+
   return (
     <div className={`fixed bottom-20 left-0 right-0 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-t z-40 shadow-lg`}>
       {/* Progress Bar */}
@@ -57,13 +62,13 @@ const MinimizedPlayer: React.FC<MinimizedPlayerProps> = ({
         
         {/* Like Button */}
         <button 
-          onClick={(e) => {
-            e.stopPropagation();
-            onToggleLike();
-          }}
+          onClick={handleToggleLike}
           className={`p-2 ${isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} rounded-full transition-colors mr-2`}
         >
-          <Heart size={16} className={`${song.isLiked ? 'text-red-400 fill-red-400' : isDarkMode ? 'text-gray-400' : 'text-gray-600'}`} />
+          <Heart 
+            size={16} 
+            className={`${song.isLiked ? 'text-red-400 fill-red-400' : isDarkMode ? 'text-gray-400' : 'text-gray-600'}`} 
+          />
         </button>
         
         {/* Controls */}

@@ -118,6 +118,37 @@ export function useSupabaseData(user: User | null) {
     }
   }
 
+  // Increment song views
+  const incrementViews = async (songId: string) => {
+    try {
+      const { error } = await supabase
+        .from('songs')
+        .update({ views: supabase.sql`views + 1` })
+        .eq('file_id', parseInt(songId))
+
+      if (error) throw error
+
+      // Update local state
+      setSongs(prevSongs => 
+        prevSongs.map(song => 
+          song.id === songId ? { ...song, views: song.views + 1 } : song
+        )
+      )
+
+      // Update playlists state
+      setPlaylists(prevPlaylists =>
+        prevPlaylists.map(playlist => ({
+          ...playlist,
+          songs: playlist.songs.map(song =>
+            song.id === songId ? { ...song, views: song.views + 1 } : song
+          )
+        }))
+      )
+    } catch (error) {
+      console.error('Error incrementing views:', error)
+    }
+  }
+
   // Toggle like song
   const toggleLike = async (songId: string) => {
     if (!user) return
@@ -135,11 +166,36 @@ export function useSupabaseData(user: User | null) {
 
         if (error) throw error
 
+        // Decrement likes count in songs table
+        const { error: updateError } = await supabase
+          .from('songs')
+          .update({ likes: supabase.sql`likes - 1` })
+          .eq('file_id', songFileId)
+
+        if (updateError) throw updateError
+
         setLikedSongs(prev => {
           const newSet = new Set(prev)
           newSet.delete(songFileId)
           return newSet
         })
+
+        // Update songs state
+        setSongs(prevSongs => 
+          prevSongs.map(song => 
+            song.id === songId ? { ...song, isLiked: false, likes: song.likes - 1 } : song
+          )
+        )
+
+        // Update playlists state
+        setPlaylists(prevPlaylists =>
+          prevPlaylists.map(playlist => ({
+            ...playlist,
+            songs: playlist.songs.map(song =>
+              song.id === songId ? { ...song, isLiked: false, likes: song.likes - 1 } : song
+            )
+          }))
+        )
       } else {
         const { error } = await supabase
           .from('liked_songs')
@@ -150,25 +206,33 @@ export function useSupabaseData(user: User | null) {
 
         if (error) throw error
 
+        // Increment likes count in songs table
+        const { error: updateError } = await supabase
+          .from('songs')
+          .update({ likes: supabase.sql`likes + 1` })
+          .eq('file_id', songFileId)
+
+        if (updateError) throw updateError
+
         setLikedSongs(prev => new Set(prev).add(songFileId))
-      }
 
-      // Update songs state
-      setSongs(prevSongs => 
-        prevSongs.map(song => 
-          song.id === songId ? { ...song, isLiked: !isCurrentlyLiked } : song
-        )
-      )
-
-      // Update playlists state
-      setPlaylists(prevPlaylists =>
-        prevPlaylists.map(playlist => ({
-          ...playlist,
-          songs: playlist.songs.map(song =>
-            song.id === songId ? { ...song, isLiked: !isCurrentlyLiked } : song
+        // Update songs state
+        setSongs(prevSongs => 
+          prevSongs.map(song => 
+            song.id === songId ? { ...song, isLiked: true, likes: song.likes + 1 } : song
           )
-        }))
-      )
+        )
+
+        // Update playlists state
+        setPlaylists(prevPlaylists =>
+          prevPlaylists.map(playlist => ({
+            ...playlist,
+            songs: playlist.songs.map(song =>
+              song.id === songId ? { ...song, isLiked: true, likes: song.likes + 1 } : song
+            )
+          }))
+        )
+      }
     } catch (error) {
       console.error('Error toggling like:', error)
     }
@@ -370,6 +434,9 @@ export function useSupabaseData(user: User | null) {
     
     // Update last song in user profile
     await updateLastSong(songId)
+
+    // Increment views for the new song
+    await incrementViews(songId)
   }
 
   // Stop current song tracking (when player is closed)
@@ -405,6 +472,11 @@ export function useSupabaseData(user: User | null) {
     setCurrentSongStartTime(null)
   }
 
+  // Clear last played song
+  const clearLastPlayedSong = () => {
+    setLastPlayedSong(null)
+  }
+
   useEffect(() => {
     const loadData = async () => {
       setLoading(true)
@@ -433,6 +505,7 @@ export function useSupabaseData(user: User | null) {
     removeSongFromPlaylist,
     recordListeningHistory,
     stopCurrentSongTracking,
+    clearLastPlayedSong,
     refreshData: () => {
       fetchSongs()
       fetchPlaylists()
