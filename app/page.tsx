@@ -87,19 +87,23 @@ function MusicPlayerContent() {
   const closePlayer = async () => {
     // Stop tracking current song before closing
     await stopCurrentSongTracking();
-    // Clear last played song from state
-    clearLastPlayedSong();
+    // Clear last played song from state and database
+    await clearLastPlayedSong();
     setCurrentSong(null);
     setIsPlaying(false);
     setIsPlayerMaximized(false);
   };
 
-  const handleToggleLike = (songId: string) => {
-    toggleLike(songId);
+  const handleToggleLike = async (songId: string) => {
+    await toggleLike(songId);
     
     // Update current song if it's the one being liked/unliked
     if (currentSong && currentSong.id === songId) {
-      setCurrentSong(prev => prev ? { ...prev, isLiked: !prev.isLiked } : null);
+      // Find the updated song from the songs array
+      const updatedSong = songs.find(song => song.id === songId);
+      if (updatedSong) {
+        setCurrentSong(updatedSong);
+      }
     }
   };
 
