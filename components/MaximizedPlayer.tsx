@@ -39,6 +39,10 @@ const MaximizedPlayer: React.FC<MaximizedPlayerProps> = ({
 
   const progressPercentage = (currentTime / duration) * 100;
 
+  const handleToggleLike = () => {
+    onToggleLike();
+  };
+
   return (
     <div className={`fixed inset-0 ${isDarkMode ? 'bg-gradient-to-b from-gray-900 via-gray-900 to-black' : 'bg-gradient-to-b from-gray-50 via-gray-100 to-gray-200'} z-50 flex flex-col`}>
       {/* Header - Fixed */}
@@ -186,7 +190,7 @@ const MaximizedPlayer: React.FC<MaximizedPlayerProps> = ({
             <div className="flex items-center justify-between">
               {/* Like Button - Bottom Left */}
               <button 
-                onClick={onToggleLike}
+                onClick={handleToggleLike}
                 className={`flex items-center space-x-2 px-4 py-2 ${song.isLiked ? 'bg-red-500 hover:bg-red-600' : isDarkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300'} rounded-full transition-colors`}
               >
                 <Heart size={18} className={`${song.isLiked ? 'text-white fill-white' : isDarkMode ? 'text-gray-300' : 'text-gray-700'}`} />

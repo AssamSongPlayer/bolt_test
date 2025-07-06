@@ -12,8 +12,20 @@ interface TrendingSongProps {
 const TrendingSong: React.FC<TrendingSongProps> = ({ song, onPlay, formatNumber }) => {
   const { isDarkMode } = useTheme();
 
+  const handleCardClick = () => {
+    onPlay(song);
+  };
+
+  const handlePlayClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onPlay(song);
+  };
+
   return (
-    <div className="flex-shrink-0 w-40 group">
+    <div 
+      onClick={handleCardClick}
+      className="flex-shrink-0 w-40 group cursor-pointer"
+    >
       <div className="relative mb-2">
         <img
           src={song.image}
@@ -21,7 +33,7 @@ const TrendingSong: React.FC<TrendingSongProps> = ({ song, onPlay, formatNumber 
           className="w-full h-40 rounded-lg object-cover"
         />
         <button
-          onClick={() => onPlay(song)}
+          onClick={handlePlayClick}
           className="absolute inset-0 bg-black/60 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
         >
           <Play className="text-white" size={24} fill="white" />

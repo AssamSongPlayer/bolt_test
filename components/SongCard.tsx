@@ -22,8 +22,39 @@ const SongCard: React.FC<SongCardProps> = ({
 }) => {
   const { isDarkMode } = useTheme();
 
+  const handleCardClick = () => {
+    onPlay(song);
+  };
+
+  const handlePlayClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onPlay(song);
+  };
+
+  const handleAddToPlaylist = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onAddToPlaylist) {
+      onAddToPlaylist(song);
+    }
+  };
+
+  const handleRemove = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onRemove) {
+      onRemove();
+    }
+  };
+
+  const handleMoreClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    // Handle more options
+  };
+
   return (
-    <div className={`flex items-center p-3 ${isDarkMode ? 'bg-gray-800/50 hover:bg-gray-800' : 'bg-white/50 hover:bg-white border border-gray-200'} rounded-lg transition-all group`}>
+    <div 
+      onClick={handleCardClick}
+      className={`flex items-center p-3 ${isDarkMode ? 'bg-gray-800/50 hover:bg-gray-800' : 'bg-white/50 hover:bg-white border border-gray-200'} rounded-lg transition-all group cursor-pointer`}
+    >
       <div className="relative mr-3">
         <img
           src={song.image}
@@ -31,7 +62,7 @@ const SongCard: React.FC<SongCardProps> = ({
           className="w-12 h-12 rounded-lg object-cover"
         />
         <button
-          onClick={() => onPlay(song)}
+          onClick={handlePlayClick}
           className="absolute inset-0 bg-black/60 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
         >
           <Play className="text-white" size={16} fill="white" />
@@ -57,7 +88,7 @@ const SongCard: React.FC<SongCardProps> = ({
       <div className="flex items-center space-x-2 ml-3">
         {showRemoveButton && onRemove && (
           <button 
-            onClick={onRemove}
+            onClick={handleRemove}
             className={`p-1 ${isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-200'} rounded-full transition-colors text-red-400 hover:text-red-300`}
           >
             <X size={16} />
@@ -65,13 +96,16 @@ const SongCard: React.FC<SongCardProps> = ({
         )}
         {onAddToPlaylist && (
           <button 
-            onClick={() => onAddToPlaylist(song)}
+            onClick={handleAddToPlaylist}
             className={`p-1 ${isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-200'} rounded-full transition-colors`}
           >
             <Plus size={16} className={isDarkMode ? 'text-gray-400' : 'text-gray-600'} />
           </button>
         )}
-        <button className={`p-1 ${isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-200'} rounded-full transition-colors`}>
+        <button 
+          onClick={handleMoreClick}
+          className={`p-1 ${isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-200'} rounded-full transition-colors`}
+        >
           <MoreHorizontal size={16} className={isDarkMode ? 'text-gray-400' : 'text-gray-600'} />
         </button>
       </div>
