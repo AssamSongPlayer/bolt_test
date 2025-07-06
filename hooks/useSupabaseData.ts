@@ -121,10 +121,9 @@ export function useSupabaseData(user: User | null) {
   // Increment song views
   const incrementViews = async (songId: string) => {
     try {
-      const { error } = await supabase
-        .from('songs')
-        .update({ views: supabase.sql`views + 1` })
-        .eq('file_id', parseInt(songId))
+      const { error } = await supabase.rpc('increment_views', {
+        song_file_id: parseInt(songId)
+      })
 
       if (error) throw error
 
@@ -158,6 +157,7 @@ export function useSupabaseData(user: User | null) {
 
     try {
       if (isCurrentlyLiked) {
+        // Remove like
         const { error } = await supabase
           .from('liked_songs')
           .delete()
@@ -167,10 +167,9 @@ export function useSupabaseData(user: User | null) {
         if (error) throw error
 
         // Decrement likes count in songs table
-        const { error: updateError } = await supabase
-          .from('songs')
-          .update({ likes: supabase.sql`likes - 1` })
-          .eq('file_id', songFileId)
+        const { error: updateError } = await supabase.rpc('decrement_likes', {
+          song_file_id: songFileId
+        })
 
         if (updateError) throw updateError
 
@@ -183,7 +182,7 @@ export function useSupabaseData(user: User | null) {
         // Update songs state
         setSongs(prevSongs => 
           prevSongs.map(song => 
-            song.id === songId ? { ...song, isLiked: false, likes: song.likes - 1 } : song
+            song.id === songId ? { ...song, isLiked: false, likes: Math.max(0, song.likes - 1) } : song
           )
         )
 
@@ -192,11 +191,12 @@ export function useSupabaseData(user: User | null) {
           prevPlaylists.map(playlist => ({
             ...playlist,
             songs: playlist.songs.map(song =>
-              song.id === songId ? { ...song, isLiked: false, likes: song.likes - 1 } : song
+              song.id === songId ? { ...song, isLiked: false, likes: Math.max(0, song.likes - 1) } : song
             )
           }))
         )
       } else {
+        // Add like
         const { error } = await supabase
           .from('liked_songs')
           .insert({
@@ -207,10 +207,9 @@ export function useSupabaseData(user: User | null) {
         if (error) throw error
 
         // Increment likes count in songs table
-        const { error: updateError } = await supabase
-          .from('songs')
-          .update({ likes: supabase.sql`likes + 1` })
-          .eq('file_id', songFileId)
+        const { error: updateError } = await supabase.rpc('increment_likes', {
+          song_file_id: songFileId
+        })
 
         if (updateError) throw updateError
 
